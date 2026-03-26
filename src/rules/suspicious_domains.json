@@ -1,0 +1,18 @@
+{
+  "malicious_ips": [
+    "91.92.242.",
+    "45.61.",
+    "185.234.216.",
+    "194.87.31.",
+    "23.106.215."
+  ],
+  "c2_domains": [
+    "burpcollaborator.net",
+    "oastify.com",
+    "interact.sh",
+    "requestbin.com",
+    "pipedream.net",
+    "webhook.site"
+  ],
+  "comments": "Known C2 infrastructure IPs and domains. Partial IP prefixes match any suffix."
+}

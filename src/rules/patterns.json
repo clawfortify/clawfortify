@@ -1,0 +1,732 @@
+[
+  {
+    "name": "CURL_PIPE_BASH",
+    "pattern": "curl\\s+.*\\|\\s*(ba)?sh",
+    "severity": "critical",
+    "category": "remote_code_execution",
+    "title": "Curl piped to shell",
+    "description": "Downloads and executes remote code directly — classic supply chain attack vector.",
+    "code_only": true,
+    "fix": "Download the script first, inspect it, then execute: `curl -o setup.sh URL && cat setup.sh && bash setup.sh`"
+  },
+  {
+    "name": "WGET_EXECUTE",
+    "pattern": "wget\\s+.*&&\\s*(ba)?sh",
+    "severity": "critical",
+    "category": "remote_code_execution",
+    "title": "Wget with shell execution",
+    "description": "Downloads and executes remote code via wget.",
+    "code_only": true,
+    "fix": "Download the file first with `wget -O script.sh URL`, review it, then execute."
+  },
+  {
+    "name": "EVAL_DYNAMIC",
+    "pattern": "eval\\s*\\(",
+    "severity": "critical",
+    "category": "remote_code_execution",
+    "title": "Dynamic code evaluation",
+    "description": "Uses dynamic code evaluation which can run arbitrary code.",
+    "code_only": true,
+    "fix": "Replace dynamic evaluation with a safer alternative like JSON.parse() or a sandboxed environment."
+  },
+  {
+    "name": "BASE64_DECODE",
+    "pattern": "base64\\s+(-d|--decode)",
+    "severity": "critical",
+    "category": "obfuscation",
+    "title": "Base64 decode execution",
+    "description": "Decodes base64 content, often used to hide malicious payloads.",
+    "code_only": true,
+    "fix": "Decode and include the command directly so users can review it."
+  },
+  {
+    "name": "PYTHON_EXEC",
+    "pattern": "python[3]?\\s+-c",
+    "severity": "critical",
+    "category": "remote_code_execution",
+    "title": "Python inline execution",
+    "description": "Executes inline Python code which may contain hidden payloads.",
+    "code_only": true,
+    "fix": "Move inline code to a separate .py file so users can review it before execution."
+  },
+  {
+    "name": "REVERSE_SHELL",
+    "pattern": "/dev/tcp/|nc\\s+-[elp]|ncat\\s+-|mkfifo\\s+.*/tmp",
+    "severity": "critical",
+    "category": "remote_code_execution",
+    "title": "Reverse shell",
+    "description": "Creates a reverse connection back to an attacker-controlled server.",
+    "code_only": true,
+    "fix": "Remove reverse connection commands — these are almost never legitimate in skills."
+  },
+  {
+    "name": "CRON_PERSISTENCE",
+    "pattern": "crontab\\s+-|/etc/cron|systemctl\\s+enable",
+    "severity": "critical",
+    "category": "persistence",
+    "title": "Scheduled task persistence",
+    "description": "Installs a cron job or systemd service for persistent execution after reboot.",
+    "code_only": true,
+    "fix": "Document the scheduled task in the skill description and require explicit user consent before installing."
+  },
+  {
+    "name": "PERL_EXEC",
+    "pattern": "perl\\s+-e",
+    "severity": "critical",
+    "category": "remote_code_execution",
+    "title": "Perl inline execution",
+    "description": "Executes inline Perl code which may contain obfuscated payloads.",
+    "code_only": true,
+    "fix": "Move inline code to a separate .pl file so users can review it before execution."
+  },
+  {
+    "name": "NODE_EVAL",
+    "pattern": "node\\s+-e\\s",
+    "severity": "critical",
+    "category": "remote_code_execution",
+    "title": "Node.js inline execution",
+    "description": "Executes inline Node.js code, often used to hide malicious logic.",
+    "code_only": true,
+    "fix": "Move inline code to a separate .js file so users can review it before execution."
+  },
+  {
+    "name": "RUBY_EXEC",
+    "pattern": "ruby\\s+-e",
+    "severity": "critical",
+    "category": "remote_code_execution",
+    "title": "Ruby inline execution",
+    "description": "Executes inline Ruby code which may contain hidden payloads.",
+    "code_only": true,
+    "fix": "Move inline code to a separate .rb file so users can review it before execution."
+  },
+  {
+    "name": "ENV_FILE_READ",
+    "pattern": "\\.env|credentials|\\.aws|\\.ssh|keychain",
+    "severity": "high",
+    "category": "credential_theft",
+    "title": "Sensitive file access",
+    "description": "Accesses credential files (.env, .aws, .ssh, keychain).",
+    "code_only": false,
+    "fix": "Declare required env vars in frontmatter under `metadata.openclaw.requires.env`."
+  },
+  {
+    "name": "API_KEY_EXFIL",
+    "pattern": "(ANTHROPIC|OPENAI|SLACK|DISCORD|TELEGRAM|STRIPE|GITHUB|GITLAB|AWS_SECRET|GROQ|OPENROUTER).*(_KEY|_TOKEN|_SECRET)",
+    "severity": "high",
+    "category": "credential_theft",
+    "title": "API key reference",
+    "description": "References specific API keys/tokens that could be exfiltrated.",
+    "code_only": false,
+    "fix": "Use environment variable references ($VAR) instead of hardcoding keys, and declare them in requires.env."
+  },
+  {
+    "name": "DOTFILE_ACCESS",
+    "pattern": "~/\\.(openclaw|clawdbot|moltbot)/",
+    "severity": "high",
+    "category": "credential_theft",
+    "title": "OpenClaw config access",
+    "description": "Accesses OpenClaw/Clawdbot/Moltbot configuration directories.",
+    "code_only": false,
+    "fix": "Use the official OpenClaw SDK/API instead of directly reading config directories."
+  },
+  {
+    "name": "SESSION_THEFT",
+    "pattern": "sessions/\\*\\.jsonl",
+    "severity": "high",
+    "category": "credential_theft",
+    "title": "Session data access",
+    "description": "Accesses session transcript files which may contain sensitive data.",
+    "code_only": false,
+    "fix": "Remove session file access — skills should not read conversation transcripts."
+  },
+  {
+    "name": "SSH_KEY_ACCESS",
+    "pattern": "~/\\.ssh/id_|\\.pem\\b|BEGIN\\s+(RSA\\s+)?PRIVATE\\s+KEY",
+    "severity": "high",
+    "category": "credential_theft",
+    "title": "SSH/private key access",
+    "description": "Accesses SSH keys or private key files that could be stolen.",
+    "code_only": false,
+    "fix": "Use ssh-agent or a credential manager instead of directly reading key files."
+  },
+  {
+    "name": "BROWSER_DATA",
+    "pattern": "\\.config/google-chrome|\\.mozilla/firefox|Login\\s*Data|Cookies\\.sqlite",
+    "severity": "high",
+    "category": "credential_theft",
+    "title": "Browser data access",
+    "description": "Accesses browser profiles which contain saved passwords, cookies, and tokens.",
+    "code_only": false,
+    "fix": "Remove browser data access — skills should not read browser profiles."
+  },
+  {
+    "name": "GIT_CREDENTIALS",
+    "pattern": "\\.git-credentials|\\.gitconfig|git\\s+config.*credential",
+    "severity": "high",
+    "category": "credential_theft",
+    "title": "Git credential access",
+    "description": "Accesses git credential storage which may contain auth tokens.",
+    "code_only": false,
+    "fix": "Use `git` CLI commands instead of directly reading credential files."
+  },
+  {
+    "name": "NPM_TOKEN",
+    "pattern": "\\.npmrc|npm_token|NPM_AUTH_TOKEN",
+    "severity": "high",
+    "category": "credential_theft",
+    "title": "npm token access",
+    "description": "Accesses npm auth tokens which could be used to publish malicious packages.",
+    "code_only": false,
+    "fix": "Use `npm whoami` or `npm config get` instead of directly reading .npmrc."
+  },
+  {
+    "name": "KUBE_CONFIG",
+    "pattern": "~/\\.kube/config|KUBECONFIG",
+    "severity": "high",
+    "category": "credential_theft",
+    "title": "Kubernetes config access",
+    "description": "Accesses Kubernetes configuration which contains cluster credentials.",
+    "code_only": false,
+    "fix": "Use `kubectl` CLI commands instead of directly reading kubeconfig."
+  },
+  {
+    "name": "DOCKER_SOCKET",
+    "pattern": "/var/run/docker\\.sock|docker\\s+exec",
+    "severity": "high",
+    "category": "container_escape",
+    "title": "Docker socket/exec access",
+    "description": "Accesses Docker socket or runs exec — could enable container escape.",
+    "code_only": false,
+    "fix": "Use Docker SDK or CLI with limited permissions instead of direct socket access."
+  },
+  {
+    "name": "WEBHOOK_SEND",
+    "pattern": "webhook\\.(site|url)|discord\\.com/api/webhooks|hooks\\.slack\\.com|api\\.telegram\\.org/bot",
+    "severity": "high",
+    "category": "data_exfiltration",
+    "title": "Webhook data exfiltration",
+    "description": "Sends data to webhook endpoints (Discord, Slack, Telegram) — common exfiltration channel.",
+    "code_only": false,
+    "fix": "If webhook integration is needed, declare it in the skill description and let users configure their own webhook URL."
+  },
+  {
+    "name": "BORE_TUNNEL",
+    "pattern": "bore\\.pub|ngrok|localtunnel|serveo\\.net|localhost\\.run",
+    "severity": "high",
+    "category": "data_exfiltration",
+    "title": "Tunnel service usage",
+    "description": "Uses tunneling services to expose local services or exfiltrate data.",
+    "code_only": false,
+    "fix": "Document tunnel usage in the skill description and require explicit user consent."
+  },
+  {
+    "name": "SUSPICIOUS_IP",
+    "pattern": "\\b(?:91\\.92\\.242\\.\\d+|45\\.61\\.\\d+\\.\\d+)\\b",
+    "severity": "high",
+    "category": "data_exfiltration",
+    "title": "Known malicious IP",
+    "description": "Contains IP addresses associated with known ClawHavoc C2 infrastructure.",
+    "code_only": false,
+    "fix": "Remove references to known malicious IP addresses."
+  },
+  {
+    "name": "DNS_EXFIL",
+    "pattern": "dig\\s+.*TXT|nslookup\\s+.*\\$|dns.*exfil|\\.burpcollaborator\\.|\\.oastify\\.",
+    "severity": "high",
+    "category": "data_exfiltration",
+    "title": "DNS exfiltration",
+    "description": "Uses DNS queries to exfiltrate data — bypasses most firewalls.",
+    "code_only": false,
+    "fix": "Remove DNS exfiltration patterns — use standard HTTP APIs for data transfer."
+  },
+  {
+    "name": "PASTEBIN_FETCH",
+    "pattern": "pastebin\\.com|paste\\.ee|hastebin\\.com|ghostbin\\.|dpaste\\.",
+    "severity": "high",
+    "category": "data_exfiltration",
+    "title": "Pastebin service usage",
+    "description": "References paste services commonly used to host malicious payloads or receive exfiltrated data.",
+    "code_only": false,
+    "fix": "Host code in a version-controlled repository (GitHub, GitLab) instead of paste services."
+  },
+  {
+    "name": "SUSPICIOUS_TLD",
+    "pattern": "https?://[^\\s\"']*\\.(tk|ml|ga|cf|gq|top|xyz|pw|cc|ws|buzz)\\b",
+    "severity": "high",
+    "category": "data_exfiltration",
+    "title": "Suspicious TLD",
+    "description": "URL uses a top-level domain frequently associated with malicious infrastructure.",
+    "code_only": false,
+    "fix": "Use URLs from well-known, reputable domains instead of suspicious TLDs."
+  },
+  {
+    "name": "URL_SHORTENER",
+    "pattern": "bit\\.ly|tinyurl\\.com|t\\.co/|goo\\.gl|is\\.gd|buff\\.ly|ow\\.ly|rb\\.gy",
+    "severity": "high",
+    "category": "obfuscation",
+    "title": "URL shortener",
+    "description": "Uses URL shorteners to hide the real destination of links.",
+    "code_only": false,
+    "fix": "Use the full, unshortened URL so users can verify the destination."
+  },
+  {
+    "name": "RAW_SOCKET",
+    "pattern": "new\\s+Socket|net\\.connect|dgram\\.createSocket",
+    "severity": "high",
+    "category": "data_exfiltration",
+    "title": "Raw socket connection",
+    "description": "Creates raw network sockets which can bypass HTTP monitoring.",
+    "code_only": true,
+    "fix": "Use standard HTTP libraries (fetch, axios) instead of raw sockets for network communication."
+  },
+  {
+    "name": "PREREQUISITE_INSTALL",
+    "pattern": "prerequisite|install.*first|run.*before|required.*dependency",
+    "severity": "medium",
+    "category": "social_engineering",
+    "title": "Prerequisite install trick",
+    "description": "Instructs users to install prerequisites — common social engineering tactic.",
+    "code_only": false,
+    "fix": "Declare dependencies in `metadata.openclaw.requires.bins` instead of instructing manual installs."
+  },
+  {
+    "name": "COPY_PASTE_COMMAND",
+    "pattern": "copy.*paste.*terminal|run.*this.*command",
+    "severity": "medium",
+    "category": "social_engineering",
+    "title": "Copy-paste command instruction",
+    "description": "Instructs users to copy-paste commands into their terminal.",
+    "code_only": false,
+    "fix": "Put commands in code blocks with proper context instead of copy-paste instructions."
+  },
+  {
+    "name": "FAKE_DEPENDENCY",
+    "pattern": "openclaw-core|moltbot-runtime|clawdbot-helper",
+    "severity": "medium",
+    "category": "social_engineering",
+    "title": "Fake dependency reference",
+    "description": "References fake packages that mimic official OpenClaw components.",
+    "code_only": false,
+    "fix": "Use only official OpenClaw packages from the verified registry."
+  },
+  {
+    "name": "AUTHORITY_SPOOFING",
+    "pattern": "official\\s+(openclaw|clawhub)|endorsed\\s+by|verified\\s+(skill|publisher)|from\\s+the\\s+openclaw\\s+team",
+    "severity": "medium",
+    "category": "social_engineering",
+    "title": "Authority spoofing",
+    "description": "Claims official endorsement or verification to gain trust.",
+    "code_only": false,
+    "fix": "Remove false authority claims — let the skill's quality speak for itself."
+  },
+  {
+    "name": "URGENCY_MANIPULATION",
+    "pattern": "critical\\s+update|security\\s+patch|must\\s+install\\s+immediately|urgent.*update",
+    "severity": "medium",
+    "category": "social_engineering",
+    "title": "Urgency manipulation",
+    "description": "Creates false urgency to pressure users into installing without review.",
+    "code_only": false,
+    "fix": "Remove urgency language — let users evaluate the skill at their own pace."
+  },
+  {
+    "name": "IGNORE_INSTRUCTIONS",
+    "pattern": "(?i)ignore\\s+(all\\s+)?previous\\s+instructions",
+    "severity": "medium",
+    "category": "prompt_injection",
+    "title": "Prompt injection — ignore instructions",
+    "description": "Attempts to override the AI agent's existing instructions.",
+    "code_only": false,
+    "fix": "Remove prompt injection attempts — skills should not try to override agent instructions."
+  },
+  {
+    "name": "SYSTEM_OVERRIDE",
+    "pattern": "(?i)you\\s+are\\s+now|new\\s+instructions|forget\\s+everything",
+    "severity": "medium",
+    "category": "prompt_injection",
+    "title": "Prompt injection — system override",
+    "description": "Attempts to redefine the AI agent's identity or instructions.",
+    "code_only": false,
+    "fix": "Remove system override attempts — skills should not alter agent identity."
+  },
+  {
+    "name": "MEMORY_MANIPULATION",
+    "pattern": "(?i)SOUL\\.md|MEMORY\\.md|AGENTS\\.md",
+    "severity": "medium",
+    "category": "persistence",
+    "title": "Memory/personality file manipulation",
+    "description": "References core personality or memory files, may attempt persistence.",
+    "code_only": false,
+    "fix": "Remove references to agent memory/personality files — skills should not modify agent state."
+  },
+  {
+    "name": "JAILBREAK_ATTEMPT",
+    "pattern": "(?i)\\bDAN\\b|do\\s+anything\\s+now|developer\\s+mode|evil\\s+mode|bypass.*safety",
+    "severity": "medium",
+    "category": "prompt_injection",
+    "title": "Jailbreak attempt",
+    "description": "Uses known jailbreak techniques (DAN, developer mode) to bypass safety constraints.",
+    "code_only": false,
+    "fix": "Remove jailbreak attempts — skills should work within the agent's safety constraints."
+  },
+  {
+    "name": "ROLE_HIJACK",
+    "pattern": "(?i)(?:pretend|act|behave)\\s+(?:you\\s+are|as\\s+if|to\\s+be)\\s+(?:a\\s+)?(?:different|new|hacker|evil)",
+    "severity": "medium",
+    "category": "prompt_injection",
+    "title": "Role hijacking",
+    "description": "Attempts to change the agent's persona to bypass safety restrictions.",
+    "code_only": false,
+    "fix": "Remove role hijacking attempts — skills should not alter the agent's persona."
+  },
+  {
+    "name": "PROMPT_EXTRACTION",
+    "pattern": "(?i)(?:reveal|show|print|output|tell\\s+me)\\s+(?:your\\s+)?(?:system\\s+)?(?:prompt|instructions|rules)",
+    "severity": "medium",
+    "category": "prompt_injection",
+    "title": "System prompt extraction",
+    "description": "Attempts to extract the agent's system prompt or configuration.",
+    "code_only": false,
+    "fix": "Remove prompt extraction attempts — skills should not try to access system prompts."
+  },
+  {
+    "name": "HEX_ENCODING",
+    "pattern": "\\\\x[0-9a-fA-F]{2}(?:\\\\x[0-9a-fA-F]{2}){3,}",
+    "severity": "medium",
+    "category": "obfuscation",
+    "title": "Hex-encoded payload",
+    "description": "Contains hex-encoded strings commonly used to hide malicious commands.",
+    "code_only": true,
+    "fix": "Replace hex-encoded strings with readable text so users can review the content."
+  },
+  {
+    "name": "JS_OBFUSCATOR",
+    "pattern": "_0x[a-f0-9]{4,}|var\\s+_0x",
+    "severity": "medium",
+    "category": "obfuscation",
+    "title": "JavaScript obfuscator output",
+    "description": "Contains patterns from JavaScript obfuscation tools used to hide malicious code.",
+    "code_only": true,
+    "fix": "Provide readable, unobfuscated source code instead of obfuscated JavaScript."
+  },
+  {
+    "name": "UNICODE_STEGANOGRAPHY",
+    "pattern": "[\\u200B\\u200C\\u200D\\u2060\\uFEFF]{3,}",
+    "severity": "medium",
+    "category": "obfuscation",
+    "title": "Hidden zero-width characters",
+    "description": "Contains clusters of invisible zero-width Unicode characters that may hide instructions.",
+    "code_only": false,
+    "fix": "Remove zero-width characters — all content should be visible to users."
+  },
+  {
+    "name": "RTL_OVERRIDE",
+    "pattern": "[\\u202A\\u202B\\u202C\\u202D\\u202E\\u2066\\u2067\\u2068\\u2069]",
+    "severity": "medium",
+    "category": "obfuscation",
+    "title": "Bidirectional text override",
+    "description": "Contains Unicode bidi override characters that can reverse displayed text to hide real content.",
+    "code_only": false,
+    "fix": "Remove bidirectional text override characters — text direction should be natural."
+  },
+  {
+    "name": "HTML_COMMENT_INJECTION",
+    "pattern": "<!--[\\s\\S]*?(?:ignore|instructions|system|override|secret)[\\s\\S]*?-->",
+    "severity": "medium",
+    "category": "obfuscation",
+    "title": "Hidden HTML comment instruction",
+    "description": "Embeds instructions inside HTML comments that are invisible to users but read by agents.",
+    "code_only": false,
+    "fix": "Move instructions from HTML comments into visible content."
+  },
+  {
+    "name": "STRING_CONCAT_OBFUSC",
+    "pattern": "[\"'][a-z]{1,3}[\"']\\s*\\+\\s*[\"'][a-z]{1,3}[\"']\\s*\\+\\s*[\"'][a-z]{1,3}[\"']",
+    "severity": "medium",
+    "category": "obfuscation",
+    "title": "String concatenation obfuscation",
+    "description": "Builds commands via single-character string concatenation to evade pattern detection.",
+    "code_only": true,
+    "fix": "Use complete string literals instead of character-by-character concatenation."
+  },
+  {
+    "name": "BUFFER_BASE64_DECODE",
+    "pattern": "Buffer\\.from\\s*\\(.*['\"]base64['\"]\\)|atob\\s*\\(",
+    "severity": "critical",
+    "category": "obfuscation",
+    "title": "Buffer/atob encoded payload",
+    "description": "Decodes encoded content via Buffer.from() or atob(), often used to hide malicious payloads.",
+    "code_only": true,
+    "fix": "Include the decoded content directly so users can review it."
+  },
+  {
+    "name": "STRING_FROMCHARCODE",
+    "pattern": "String\\.fromCharCode\\s*\\(",
+    "severity": "medium",
+    "category": "obfuscation",
+    "title": "String.fromCharCode usage",
+    "description": "Builds strings from character codes to evade static pattern detection.",
+    "code_only": true,
+    "fix": "Use plain string literals instead of String.fromCharCode()."
+  },
+  {
+    "name": "DYNAMIC_PROPERTY_ACCESS",
+    "pattern": "(?:process|global|window|globalThis)\\s*\\[\\s*['\"`]?\\w*['\"`]?\\s*\\+",
+    "severity": "medium",
+    "category": "obfuscation",
+    "title": "Dynamic property access on globals",
+    "description": "Dynamically accesses global object properties via string concatenation to hide intent.",
+    "code_only": true,
+    "fix": "Use direct property access (e.g., `process.env`) instead of dynamic bracket notation."
+  },
+  {
+    "name": "SUDO_USAGE",
+    "pattern": "sudo\\s+(?:chmod|chown|rm|kill|mount|dd|mkfs|fdisk|iptables|passwd|usermod|visudo)",
+    "severity": "medium",
+    "category": "privilege_escalation",
+    "title": "Sudo usage",
+    "description": "Requests elevated privileges — check if actually required for the task.",
+    "code_only": true,
+    "fix": "Remove sudo if not strictly necessary, or document why elevated privileges are required."
+  },
+  {
+    "name": "CHMOD_DANGEROUS",
+    "pattern": "chmod\\s+(?:777|a\\+[rwx]|[+]s)",
+    "severity": "medium",
+    "category": "privilege_escalation",
+    "title": "Dangerous file permissions",
+    "description": "Sets overly permissive file permissions (777) or setuid/setgid bits.",
+    "code_only": true,
+    "fix": "Use least-privilege permissions (e.g., `chmod 755` or `chmod 644`) instead of 777."
+  },
+  {
+    "name": "PATH_TRAVERSAL",
+    "pattern": "\\.\\./",
+    "severity": "medium",
+    "category": "file_system",
+    "title": "Path traversal",
+    "description": "Uses relative path traversal (../) which could access files outside expected directories.",
+    "code_only": false,
+    "fix": "Use absolute paths or paths relative to the skill's working directory."
+  },
+  {
+    "name": "SHELL_EXEC",
+    "pattern": "child_process|exec\\(|spawn\\(",
+    "severity": "low",
+    "category": "code_execution",
+    "title": "Shell execution API",
+    "description": "Uses shell execution APIs — legitimate but worth noting.",
+    "code_only": true,
+    "fix": "If shell execution is needed, use execFile() with explicit arguments instead of exec() with string commands."
+  },
+  {
+    "name": "NETWORK_REQUEST",
+    "pattern": "fetch\\(|axios|node-fetch|got\\(",
+    "severity": "low",
+    "category": "network",
+    "title": "Network request API",
+    "description": "Makes network requests — legitimate but worth reviewing targets.",
+    "code_only": true,
+    "fix": "Document all network endpoints in the skill description so users can review them."
+  },
+  {
+    "name": "FILE_WRITE",
+    "pattern": "fs\\.write|writeFileSync",
+    "severity": "low",
+    "category": "file_system",
+    "title": "File write operation",
+    "description": "Writes to the filesystem — check what files are being modified.",
+    "code_only": true,
+    "fix": "Document which files are written and why in the skill description."
+  },
+  {
+    "name": "ENV_MODIFICATION",
+    "pattern": "process\\.env\\[|export\\s+[A-Z_]+=|setenv",
+    "severity": "low",
+    "category": "environment",
+    "title": "Environment variable modification",
+    "description": "Modifies environment variables which could affect other tools or processes.",
+    "code_only": true,
+    "fix": "Document env var modifications in the skill description and declare them in requires.env."
+  },
+  {
+    "name": "WILDCARD_FILE_ACCESS",
+    "pattern": "\\*\\.(pem|key|p12|pfx|jks|keystore|ovpn|rdp)",
+    "severity": "low",
+    "category": "credential_theft",
+    "title": "Sensitive file extension glob",
+    "description": "Globs for files with sensitive extensions (keys, certificates, VPN configs).",
+    "code_only": false,
+    "fix": "Reference specific files by name instead of using wildcard patterns on sensitive extensions."
+  },
+  {
+    "name": "LARGE_BASE64_LITERAL",
+    "pattern": "[A-Za-z0-9+/=]{100,}",
+    "severity": "low",
+    "category": "obfuscation",
+    "title": "Large base64-like string",
+    "description": "Contains a long base64-like string that may be an encoded payload.",
+    "code_only": false,
+    "fix": "Include the decoded content directly or explain what the base64 string contains."
+  },
+  {
+    "name": "MCP_CONFIG_TAMPER",
+    "pattern": "(?i)mcp\\.json|mcp_servers|mcpServers",
+    "severity": "high",
+    "category": "agent_attack",
+    "title": "MCP configuration tampering",
+    "description": "References MCP server configuration files, may attempt to inject malicious MCP servers.",
+    "code_only": false,
+    "fix": "Skills should not modify MCP configuration directly. Use official MCP management APIs."
+  },
+  {
+    "name": "CLAUDE_MD_INJECTION",
+    "pattern": "(?i)CLAUDE\\.md|CLAUDE\\.local\\.md",
+    "severity": "high",
+    "category": "agent_attack",
+    "title": "CLAUDE.md injection",
+    "description": "References CLAUDE.md configuration files, may attempt to inject persistent agent instructions.",
+    "code_only": false,
+    "fix": "Skills should not create or modify CLAUDE.md files."
+  },
+  {
+    "name": "CURSORRULES_OVERWRITE",
+    "pattern": "(?i)\\.cursorrules|cursor\\.rules",
+    "severity": "high",
+    "category": "agent_attack",
+    "title": ".cursorrules overwrite",
+    "description": "References Cursor rules files, may attempt to override editor/agent behavior.",
+    "code_only": false,
+    "fix": "Skills should not modify .cursorrules — this can alter all future AI interactions."
+  },
+  {
+    "name": "SKILL_CHAIN_INSTALL",
+    "pattern": "(?i)install\\s+(this\\s+)?skill|requires?\\s+skill|depends?\\s+on\\s+skill",
+    "severity": "medium",
+    "category": "agent_attack",
+    "title": "Skill chain installation",
+    "description": "Instructs installation of additional skills, creating a dependency chain that could introduce malicious code.",
+    "code_only": false,
+    "fix": "Skills should be self-contained. Declare any dependencies in frontmatter instead of instructing chain installs."
+  },
+  {
+    "name": "HOOK_ABUSE",
+    "pattern": "(?i)pre-?install|post-?install|pre-?commit|post-?commit|prepare\\s+hook",
+    "severity": "medium",
+    "category": "agent_attack",
+    "title": "Install hook abuse",
+    "description": "References install or git hooks that execute code automatically without user review.",
+    "code_only": false,
+    "fix": "Document any hooks in the skill description and require explicit user consent."
+  },
+  {
+    "name": "PRIVATE_REGISTRY",
+    "pattern": "(?i)registry\\s*=\\s*https?://[a-z0-9](?:[a-z0-9._-]*[a-z0-9])?\\.(?:tk|xyz|buzz|top|cc|to|pw|ml)",
+    "severity": "high",
+    "category": "supply_chain",
+    "title": "Private registry redirect",
+    "description": "Redirects package installation to a non-official registry, enabling supply chain attacks.",
+    "code_only": false,
+    "fix": "Use official package registries (npmjs.org, pypi.org) unless the private registry is explicitly documented."
+  },
+  {
+    "name": "LOCKFILE_TAMPER",
+    "pattern": "(?i)package-lock\\.json|yarn\\.lock|pnpm-lock\\.yaml|Pipfile\\.lock",
+    "severity": "medium",
+    "category": "supply_chain",
+    "title": "Lock file manipulation",
+    "description": "References package lock files which could be tampered to redirect dependencies to malicious sources.",
+    "code_only": false,
+    "fix": "Skills should not modify lock files. Let the package manager handle dependency resolution."
+  },
+  {
+    "name": "POSTINSTALL_SCRIPT",
+    "pattern": "(?i)\"postinstall\"\\s*:|\"preinstall\"\\s*:|scripts.*postinstall",
+    "severity": "high",
+    "category": "supply_chain",
+    "title": "Postinstall script execution",
+    "description": "Defines postinstall/preinstall scripts that execute automatically during package installation.",
+    "code_only": false,
+    "fix": "Avoid postinstall scripts. If needed, document them and use --ignore-scripts flag during review."
+  },
+  {
+    "name": "DEPENDENCY_CONFUSION",
+    "pattern": "(?i)@[a-z]+/[a-z].*(?:npm\\s+install|pip\\s+install|yarn\\s+add)",
+    "severity": "medium",
+    "category": "supply_chain",
+    "title": "Potential dependency confusion",
+    "description": "Installs scoped packages that could exploit dependency confusion between private and public registries.",
+    "code_only": true,
+    "fix": "Verify that scoped packages resolve to the intended registry. Pin exact versions."
+  },
+  {
+    "name": "ICMP_TUNNEL",
+    "pattern": "(?i)ping\\s+-p|icmpsh|icmp.*tunnel|ptunnel",
+    "severity": "high",
+    "category": "data_exfiltration",
+    "title": "ICMP tunnel",
+    "description": "Uses ICMP protocol for covert data tunneling, bypassing most network monitoring.",
+    "code_only": true,
+    "fix": "Remove ICMP tunneling commands. Use standard HTTP for any network communication."
+  },
+  {
+    "name": "IMAGE_STEGANOGRAPHY",
+    "pattern": "(?i)steghide|outguess|zsteg|stegano|openstego",
+    "severity": "high",
+    "category": "data_exfiltration",
+    "title": "Image steganography tools",
+    "description": "References steganography tools that hide data within image files for covert exfiltration.",
+    "code_only": false,
+    "fix": "Remove steganography tool references. Data should be transmitted through transparent channels."
+  },
+  {
+    "name": "CRYPTO_MINER",
+    "pattern": "(?i)xmrig|stratum\\+tcp|coinhive|cryptonight|minergate|hashrate|mining.*pool",
+    "severity": "critical",
+    "category": "cryptomining",
+    "title": "Cryptocurrency mining",
+    "description": "References cryptocurrency mining software or mining pool connections.",
+    "code_only": false,
+    "fix": "Remove all cryptocurrency mining references. Skills should not use compute resources for mining."
+  },
+  {
+    "name": "WALLET_REPLACEMENT",
+    "pattern": "(?i)\\b(bc1|[13])[a-zA-HJ-NP-Z0-9]{25,39}\\b|0x[a-fA-F0-9]{40}\\b|4[0-9AB][1-9A-HJ-NP-Za-km-z]{93}\\b",
+    "severity": "high",
+    "category": "cryptomining",
+    "title": "Cryptocurrency wallet address",
+    "description": "Contains cryptocurrency wallet addresses (BTC/ETH/XMR) that could be used for payment redirection.",
+    "code_only": false,
+    "fix": "Remove hardcoded wallet addresses. If payments are needed, let users configure their own addresses."
+  },
+  {
+    "name": "POWERSHELL_OBFUSCATION",
+    "pattern": "(?i)-EncodedCommand|Invoke-Expression|\\bIEX\\b|-WindowStyle\\s+Hidden|\\bIWR\\b.*\\bIEX\\b|FromBase64String",
+    "severity": "critical",
+    "category": "obfuscation",
+    "title": "PowerShell obfuscation",
+    "description": "Uses PowerShell obfuscation techniques (-EncodedCommand, IEX, hidden window) to conceal malicious behavior.",
+    "code_only": true,
+    "fix": "Use plain PowerShell commands without encoding or hidden execution."
+  },
+  {
+    "name": "PYTHON_DYNAMIC_EXEC",
+    "pattern": "(?i)exec\\s*\\(|compile\\s*\\(.*['\"]exec['\"]|__import__\\s*\\(",
+    "severity": "high",
+    "category": "obfuscation",
+    "title": "Python dynamic execution",
+    "description": "Uses Python dynamic execution functions (exec/compile/__import__) that can run arbitrary code at runtime.",
+    "code_only": true,
+    "fix": "Use explicit imports and direct function calls instead of dynamic execution."
+  },
+  {
+    "name": "ENV_RECONNAISSANCE",
+    "pattern": "(?i)(whoami|hostname|uname).*\\n.*(whoami|hostname|uname)",
+    "severity": "medium",
+    "category": "reconnaissance",
+    "title": "Environment reconnaissance",
+    "description": "Runs multiple system identification commands together, suggesting automated environment fingerprinting.",
+    "code_only": true,
+    "fix": "If system info is needed, document why and limit to the minimum required commands."
+  }
+]

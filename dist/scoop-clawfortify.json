@@ -1,0 +1,21 @@
+{
+  "version": "0.1.0",
+  "description": "AI Skill Security Scanner for the OpenClaw ecosystem",
+  "homepage": "https://github.com/clawfortify/clawfortify",
+  "license": "MIT",
+  "architecture": {
+    "64bit": {
+      "url": "https://github.com/clawfortify/clawfortify/releases/download/v0.1.0/clawfortify-x86_64-pc-windows-msvc.zip",
+      "hash": "PLACEHOLDER_WINDOWS_SHA256"
+    }
+  },
+  "bin": "clawfortify.exe",
+  "checkver": "github",
+  "autoupdate": {
+    "architecture": {
+      "64bit": {
+        "url": "https://github.com/clawfortify/clawfortify/releases/download/v$version/clawfortify-x86_64-pc-windows-msvc.zip"
+      }
+    }
+  }
+}

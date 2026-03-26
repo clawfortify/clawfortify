@@ -1,0 +1,101 @@
+name: 'ClawFortify Skill Scanner'
+description: 'Scan AI SKILL.md files for security threats with ClawFortify'
+branding:
+  icon: 'shield'
+  color: 'blue'
+
+inputs:
+  path:
+    description: 'Path to skill directory or SKILL.md file to scan'
+    required: false
+    default: '.'
+  format:
+    description: 'Output format: terminal, json, sarif, markdown'
+    required: false
+    default: 'terminal'
+  fail-on:
+    description: 'Severity threshold to fail the action: low, medium, high, critical'
+    required: false
+    default: 'high'
+  upload-sarif:
+    description: 'Upload SARIF results to GitHub Code Scanning'
+    required: false
+    default: 'true'
+  version:
+    description: 'ClawFortify version to use'
+    required: false
+    default: 'latest'
+
+outputs:
+  score:
+    description: 'Risk score (0-100)'
+  grade:
+    description: 'Risk grade (A-F)'
+  findings:
+    description: 'Number of findings'
+  sarif-file:
+    description: 'Path to SARIF output file'
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Install ClawFortify
+      shell: bash
+      run: |
+        if [ "${{ inputs.version }}" = "latest" ]; then
+          VERSION=$(curl -s https://api.github.com/repos/clawfortify/clawfortify/releases/latest | grep -oP '"tag_name": "\K[^"]+')
+        else
+          VERSION="${{ inputs.version }}"
+        fi
+
+        PLATFORM=$(uname -s | tr '[:upper:]' '[:lower:]')
+        ARCH=$(uname -m)
+
+        case "$PLATFORM" in
+          linux) TARGET="x86_64-unknown-linux-gnu" ;;
+          darwin) TARGET="x86_64-apple-darwin" ;;
+          *) echo "Unsupported platform: $PLATFORM"; exit 1 ;;
+        esac
+
+        curl -fsSL "https://github.com/clawfortify/clawfortify/releases/download/${VERSION}/clawfortify-${TARGET}.tar.gz" | tar xz -C /usr/local/bin/
+        chmod +x /usr/local/bin/clawfortify
+
+    - name: Run scan
+      id: scan
+      shell: bash
+      run: |
+        set +e
+        clawfortify scan "${{ inputs.path }}" --format json --output /tmp/clawfortify-result.json
+        EXIT_CODE=$?
+
+        SCORE=$(cat /tmp/clawfortify-result.json | python3 -c "import sys,json; d=json.load(sys.stdin); print(d['risk_score']['score'])" 2>/dev/null || echo "0")
+        GRADE=$(cat /tmp/clawfortify-result.json | python3 -c "import sys,json; d=json.load(sys.stdin); print(d['risk_score']['grade'])" 2>/dev/null || echo "A")
+        FINDINGS=$(cat /tmp/clawfortify-result.json | python3 -c "import sys,json; d=json.load(sys.stdin); print(len(d['risk_score']['findings']))" 2>/dev/null || echo "0")
+
+        echo "score=$SCORE" >> $GITHUB_OUTPUT
+        echo "grade=$GRADE" >> $GITHUB_OUTPUT
+        echo "findings=$FINDINGS" >> $GITHUB_OUTPUT
+
+    - name: Generate SARIF
+      if: inputs.upload-sarif == 'true'
+      shell: bash
+      run: |
+        clawfortify scan "${{ inputs.path }}" --format sarif --output /tmp/clawfortify.sarif
+        echo "sarif-file=/tmp/clawfortify.sarif" >> $GITHUB_OUTPUT
+
+    - name: Upload SARIF
+      if: inputs.upload-sarif == 'true'
+      uses: github/codeql-action/upload-sarif@v3
+      with:
+        sarif_file: /tmp/clawfortify.sarif
+        category: clawfortify
+
+    - name: Print summary
+      shell: bash
+      run: |
+        clawfortify scan "${{ inputs.path }}" --format terminal || true
+
+    - name: Check threshold
+      shell: bash
+      run: |
+        clawfortify scan "${{ inputs.path }}" --fail-on ${{ inputs.fail-on }} --format json > /dev/null 2>&1

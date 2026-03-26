@@ -1,0 +1,37 @@
+{
+  "npm": [
+    "event-stream-malicious",
+    "flatmap-stream",
+    "ua-parser-js-malicious",
+    "colors-malicious",
+    "faker-malicious",
+    "node-ipc-malicious",
+    "peacenotwar",
+    "es5-ext-malicious",
+    "coa-malicious",
+    "rc-malicious",
+    "openclaw-core",
+    "moltbot-runtime",
+    "clawdbot-helper",
+    "cursor-ai-helper",
+    "openclaw-sdk-unofficial",
+    "clawvet-bypass",
+    "skill-loader-pro",
+    "ai-agent-tools",
+    "claw-hub-client",
+    "openclaw-premium"
+  ],
+  "pip": [
+    "python-binance-malicious",
+    "ctx-malicious",
+    "phpass-malicious",
+    "request",
+    "python3-dateutil",
+    "jeIlyfish",
+    "python-mongo",
+    "libpeshka",
+    "free-net-vpn",
+    "browserdiv"
+  ],
+  "comments": "Package names known to be malicious or typosquatting official packages. This list is non-exhaustive and should be updated regularly."
+}
