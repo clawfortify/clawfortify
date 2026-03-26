@@ -27,16 +27,11 @@ AI skill security scanner. Runs a 7-pass analysis pipeline with 71+ threat detec
 
 ## Install
 
-Download pre-built binaries from [GitHub Releases](https://github.com/clawfortify/clawfortify/releases) (Linux / macOS / Windows).
-
-Or build from source:
-
 ```bash
-git clone https://github.com/clawfortify/clawfortify.git
-cd clawfortify
-cargo build --release
-# Binary at target/release/clawfortify
+cargo install clawfortify
 ```
+
+Or download pre-built binaries from [GitHub Releases](https://github.com/clawfortify/clawfortify/releases) (Linux / macOS / Windows).
 
 ## Usage
 

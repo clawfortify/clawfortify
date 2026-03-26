@@ -59,6 +59,12 @@ This means discussing `.env` in documentation text won't trigger the same alert 
 
 ## Installation
 
+### From crates.io (recommended)
+
+```bash
+cargo install clawfortify
+```
+
 ### Pre-built binaries
 
 Download from [GitHub Releases](https://github.com/clawfortify/clawfortify/releases) for Linux, macOS, and Windows.
