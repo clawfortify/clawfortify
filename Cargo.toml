@@ -1,6 +1,6 @@
 [package]
 name = "clawfortify"
-version = "0.1.0"
+version = "0.1.1"
 edition = "2021"
 description = "AI Skill Security Scanner for the OpenClaw ecosystem"
 license = "MIT"
